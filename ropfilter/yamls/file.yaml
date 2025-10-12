@@ -1,0 +1,61 @@
+vars: [base, func, sc, arith]
+
+constraints:
+  - reg2reg: { src: esp, dst: base, clobber: [esp] }      # base := esp
+  - reg2reg: { src: base, dst: esp }   
+  - arith: { src: arith, dst: base, op: "add|sub|xadd|sbb|adc", clobber: [esp]  }
+
+  - any_of:
+    - memread:  { dst: func, base: func , clobber: [esp] ,disp=: 0, op: "mov|pop|xchg"}
+    - memread:  { dst: func, base: func , clobber: [esp] ,disp>=: 0, op: "mov|pop|xchg"}
+    - memread:  { dst: func, base: func , clobber: [esp] ,disp<=: 0, op: "mov|pop|xchg"}
+
+  - any_of:
+    - memwrite:  { src: func, base: base , clobber: [esp] ,disp=: 0, op: "mov|pop|xchg"}
+    - memwrite:  { src: func, base: base , clobber: [esp] ,disp=: 4, op: "mov|pop|xchg"} 
+    - memwrite:  { src: func, base: base , clobber: [esp] ,disp=: -4, op: "mov|pop|xchg"} 
+    - memwrite:  { src: func, base: base , clobber: [esp] ,disp>=: -0x20, op: "mov|pop|xchg"} 
+    - memwrite:  { src: func, base: base , clobber: [esp] ,disp<=: 0x20, op: "mov|pop|xchg"} 
+
+  - any_of:
+    - reg2reg: { src: esp, dst: sc, clobber: [esp] }     
+    - reg2reg: { src: base, dst: sc, clobber: [esp] }  
+
+  - arith: { src: arith, dst: sc, op: "add|sub|xadd|sbb|adc", clobber: [esp]  }
+
+  - any_of:
+    - memwrite:  { src: sc, base: base , clobber: [esp] ,disp=: 0, op: "mov|pop|xchg"}
+    - memwrite:  { src: sc, base: base , clobber: [esp] ,disp=: 4, op: "mov|pop|xchg"} 
+    - memwrite:  { src: sc, base: base , clobber: [esp] ,disp=: -4, op: "mov|pop|xchg"} 
+    - memwrite:  { src: sc, base: base , clobber: [esp] ,disp>=: -0x20, op: "mov|pop|xchg"} 
+    - memwrite:  { src: sc, base: base , clobber: [esp] ,disp<=: 0x20, op: "mov|pop|xchg"} 
+
+  - pop: { dst: func, clobber: [esp] } 
+  - pop: { dst: arith, clobber: [esp] } 
+  - distinct: [base, func]
+  - distinct: [base, arith]
+  - distinct: [base, sc]
+  - distinct: [sc, arith]
+  - in:     { var: base, set: [eax, ebx, ecx, edx, esi, edi, ebp] }
+  - in:     { var: func, set: [eax, ebx, ecx, edx, esi, edi, ebp] }
+  - in:     { var: sc, set: [eax, ebx, ecx, edx, esi, edi, ebp] }
+  - in:     { var: arith, set: [eax, ebx, ecx, edx, esi, edi, ebp] }
+
+
+# ---- Global options & constraints ----
+#parsed by ropfilter.solver._apply_global_spec_overrides()
+options:
+  exact_reg: true          # eax ≠ ax ≠ al -> must also be added in cmd - or use --safe-enable
+  stable_dst: true         # enable smart overwrite protection during solving on dst
+  stable_src: true         # enable smart overwrite protection during solving on src
+  avoid_memref: "*"        # reject gadgets with memref to other registers than base in memread|memwrite filters
+  
+limits:
+  max_instr: 5            # max instructions per gadget keep it similar to rop++ -r 
+  max_solutions: 50        # max solutions to solve
+  retn: 0x20               # accept only gadgets with ret or retn N < 0x20
+  bad_bytes: [0x00]
+
+memory:
+  strict: true             # reject absolute [0x...]
+  protect_stack: true

@@ -1,0 +1,61 @@
+{
+  "vars": ["regx", "regy", "regz"],
+
+  "constraints": [
+    /* ---- Variable domains ---- */
+    { "in":    { "var": "regx", "set": ["eax", "ecx", "edx"] } },
+    { "notin": { "var": "regy", "set": ["esp", "ebp"] } },
+
+    /* ---- Equality / inequality ---- */
+    { "same":     ["regy", "regz"] },      /* regy == regz */
+    { "distinct": ["regx", "regy"] },      /* regx != regy */
+
+    /* ---- Direct reg moves (single-gadget) ---- */
+    { "reg2reg": { "src": "esp",      "dst": "regx" } },
+    { "reg2reg": { "src": "esi|edi",  "dst": "regy" } },  /* REGPAT alternation */
+
+    /* ---- Memory write with displacement + clobber avoidance ---- */
+    { "memwrite": { "base": "regx", "src": "regy", "op": "mov",
+                    "disp>=": 0, "clobber": "regx" } },
+
+    /* ---- Memory read with displacement ceiling ---- */
+    { "memread":  { "dst": "regz", "base": "regx", "disp<=": 64 } },
+
+    /* ---- Arithmetic with memory participants (both src_mem and dst_mem) ---- */
+    { "arith": {
+        "op": "add",
+        "dst": "regz",
+        "src_base": "regx", "src_disp>=": 4,
+        "dst_base": "regy", "dst_disp": 0
+      }
+    },
+    { "pop_seq": ["edi", "esi", "ebp"] },
+    { "pop": "esi" }
+
+
+
+    /* ---- Negative condition ---- */
+    { "not": { "memread": { "dst": "regx", "base": "esp" } } },
+
+    /* ---- Any-of: either a reg-based call or a leave pivot ---- */
+    { "any_of": [
+        { "dispatch": { "kind": "call", "mode": "reg", "reg": "eax" } },
+        { "pivot":    { "kind": "leave" } }
+      ]
+    },
+
+
+    /* ---- All-of: both predicates must hold (example) ---- */
+    { "all_of": [
+        { "memread":  { "dst": "regx", "base": "regy", "disp>=": 0 } },
+        { "memwrite": { "base": "regy", "src": "regx", "disp<=": 8 } }
+      ]
+    }
+  ],
+
+  /* ---- Global options & constraints ---- */
+  "options": { "max_solutions": 20, "exact_reg": true },
+  "limits":  { "max_instr": 6, "ret_only": true, "retn": 0, "max_stack_delta": 16 },
+  "address": { "bad_bytes": ["00", "0a", "0d"] },
+  "memory":  { "strict": true }
+}

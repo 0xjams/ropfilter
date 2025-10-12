@@ -1,0 +1,41 @@
+{
+  "vars": ["regx", "regy", "regz"],
+
+  "constraints": [
+    /* ---- Variable domains ---- */
+    { "notin": { "var": "regx", "set": ["esp"] } },
+    { "notin": { "var": "regy", "set": ["esp"] } },
+
+    /* ---- Equality / inequality ---- */
+    { "distinct": ["regx", "regy"] },      /* regx != regy */
+
+    /* ---- Direct reg moves (single-gadget) ---- */
+    { "reg2reg": { "src": "esp",  "dst": "regx" } },
+    { "reg2reg": { "src": "esp",  "dst": "regy" } },  /* REGPAT alternation */
+
+    /* ---- Memory write with displacement + clobber avoidance ---- */
+    { "memwrite": { "base": "regx", "src": "regy", "op": "mov",
+                    "disp=": 0, "clobber": "regx" } },
+
+    /* ---- Memory read with displacement ceiling ---- */
+    { "memread":  { "dst": "regz", "base": "regz", "disp=": 0 } },
+
+    /* ---- Arithmetic with memory participants (both src_mem and dst_mem) ---- */
+    { "arith": {
+        "op": "add|sub",
+        "dst": "regx"
+      }
+    },    
+    { "arith": {
+        "op": "add|sub",
+        "dst": "regy"
+      }
+    }
+  ],
+
+  /* ---- Global options & constraints ---- */
+  "options": { "max_solutions": 20, "exact_reg": true },
+  "limits":  { "max_instr": 6, "ret_only": true, "retn": 0, "max_stack_delta": 16 },
+  "address": { "bad_bytes": ["00", "0a", "0d"] },
+  "memory":  { "strict": true }
+}

@@ -1,0 +1,136 @@
+Version Log
+v0.2.0
+
+Split the monolithic script into modules (main.py, cli.py, filters.py, etc.).
+
+Introduced package structure (ropfilter/ with __init__.py).
+
+v0.2.1
+
+Hardened __init__.py and imports for reliability.
+
+Fixed relative import issues.
+
+v0.2.2
+
+Added missing output.py (previously caused ModuleNotFoundError).
+
+v0.2.3
+
+Updated main.py so the tool can run both:
+
+python3 ropfilter/main.py
+python3 -m ropfilter
+
+
+Added sys.path bootstrap fix.
+
+v0.2.4
+
+Fixed UnboundLocalError: parse_imm in classify.py (caused by nested import).
+
+Cleaned classifier imports.
+
+v0.2.5
+
+Expanded CLI help and usage examples.
+
+Added richer descriptions in --help output.
+
+v0.2.6
+
+Implemented reg_match() with support for:
+
+Inclusion sets (eax|ebx).
+
+Exclusion sets (!eax|ebx).
+
+Wildcards (*, any).
+
+Replaced equality checks in filters with reg_match.
+
+v0.2.7
+
+Documented the new ! / | syntax in CLI help.
+
+Updated EPILOG examples.
+
+Version bump to advertise new syntax.
+
+v0.2.8
+
+Added multi-file input awareness:
+
+-f accepts multiple gadget dump files.
+
+Each Gadget tagged with .source.
+
+Output (text, json, python) shows the originating file.
+
+v0.2.9
+
+Fixed printing of score when it was a tuple (TypeError before).
+
+Made output.py:gadget_to_text robust to ints, floats, tuples.
+
+v0.2.10
+
+Changed return ranking order:
+
+0 = clean ret
+
+1 = retn imm
+
+2 = no ret
+
+Fixed disp_rank to only consider memops that match the user’s filters.
+
+Added debug printing of ranking components (disp_rank, ret_rank, instr count, key).
+
+v0.2.11
+
+Introduced strict-mem filtering (default ON).
+
+Rejects gadgets with unconstrained memory references (absolute or unrelated bases).
+
+Only allows [esp±disp] / [ebp±disp] if no mem specs given.
+
+If mem specs exist, only mem ops matching those specs are allowed.
+
+Works across all gadget types (reg2reg, arith, etc.).
+
+Can be disabled with --no-strict-mem.
+
+Hardened strict-mem to also scan arith instructions (inc [esi+...], xor eax,[abs+edx*4]).
+
+v0.2.15
+
+--call-mem now matches all bracketed/sized forms (e.g. call [eax], call dword [eax+4], call qword ptr [ecx]), via SIZEPTR_BRACKET_RE in classify.py.
+
+--arith gains unary neg (both neg reg and neg [mem]) and recognizes memory operands on either side (dst_mem for add [eax], ecx and src_mem for add eax, [ebx]).
+
+--arith filter extended with new keys: dst_base/src_base and dst_abs/src_abs to target memory operands precisely.
+
+Strict memory guard updated to honor --call-mem + arith mem keys, so legit mem gadgets aren’t dropped just for having [ ... ].
+
+Sub-registers (al/ah/ax, bl/bh/bx, etc.) now normalize to parent 32-bit regs (e.g., al → eax) so filters like src=al work.
+
+parse_kvlist() now accepts commas or whitespace between key=value pairs, so --arith 'op=add dst_base=eax src=al' is valid.
+
+Help text (cli.py EPILOG) expanded to list all supported --arith ops and full --memread/--memwrite usage with examples.
+
+Version bumped to 0.2.15 in __init__.py.
+
+v0.2.14 (baseline from your tarball)
+
+Core parsing/classification for reg2reg, memread/memwrite (mov/movzx/movsx forms), arith (binary: add/sub/xor/or/and/adc/sbb/imul; plus lea/movimm/inc/dec recorded), pivots (xchg/mov/add esp, leave), dispatch (call/jmp to reg/mem/abs—mem required plain [reg]).
+
+Filtering layer with bad-byte address filter, reg pattern matching (inclusion/negation/alternation), memread/memwrite specs (dst/src/base/abs), dispatch filters (--call-reg/--call-abs/--call-mem), clobber controls (--avoid-clobber, --require-writes), and strict memory guard default-ON.
+
+CLI features: input via -f, ranking/output controls (e.g., --best-last), base address printing (--base-addr), and a register transfer map view (--reg-map) for quick reg2reg coverage.
+
+Constants include banned instruction patterns to pre-exclude unsafe gadgets; utils include canonical register normalization (32-bit set), immediate parsing, and memory operand parsing.
+
+
+v0.2.16
+reg-map: exclude gadgets that do not end with RET/RETN (e.g., CALL-terminated). Now the reg-map pool is RET-only.
