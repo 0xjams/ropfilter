@@ -279,11 +279,10 @@ Examples: # Simple reg move: -f app_rop.txt --reg2reg 'esp->eax' # Memory read/w
 ```
 ─# python3 -m ropfilter --safe-enable --addr-no-bytes 0x00 -f libeay32IBM019.dll_rop.txt  --avoid-clobber esp --best-last --arith 'op=neg|xor'
 
-0x1001d888 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
-0x1001d818 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
-0x1001d788 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
-0x1001d4b7 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
-0x1001d1f2 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
+
+0x10033951 # xor byte [ecx+0x0a], 0x00000010 ; ret - libeay32IBM019.dll_rop.txt 
+0x10032f43 # neg eax ; ret - libeay32IBM019.dll_rop.txt 
+0x10031a2e # neg eax ; ret - libeay32IBM019.dll_rop.txt 
 0x1001b2b6 # xor byte [esi+0x5d], bl ; ret - libeay32IBM019.dll_rop.txt 
 0x1001b2b1 # xor bl, byte [esi+0x5d] ; ret - libeay32IBM019.dll_rop.txt 
 0x1001aec4 # xor byte [esi+0x5d], bl ; ret - libeay32IBM019.dll_rop.txt 
