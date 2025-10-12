@@ -228,6 +228,74 @@ Examples: # Simple reg move: -f app_rop.txt --reg2reg 'esp->eax' # Memory read/w
 
 ```
 
+## --arith 
+**Locate gadgets that perform arithmatic operation on regs or memory location stored in regs
+
+### Find gadgets add or sub ecx to eax
+
+```
+─# python3 -m ropfilter --safe-enable --addr-no-bytes 0x00 -f libeay32IBM019.dll_rop.txt  --avoid-clobber esp --best-last --arith 'dst=eax,src=ecx,op=add|sub'
+0x10064e61 # pop edi ; pop esi ; pop ebp ; sub eax, ecx ; pop ebx ; ret - libeay32IBM019.dll_rop.txt  
+0x10064e64 # sub eax, ecx ; pop ebx ; ret - libeay32IBM019.dll_rop.txt 
+0x10064d1a # sub eax, ecx ; pop ebp ; ret - libeay32IBM019.dll_rop.txt 
+0x10064cd2 # sub eax, ecx ; pop ebp ; ret - libeay32IBM019.dll_rop.txt 
+0x1004a7b6 # sub eax, ecx ; pop ebx ; ret - libeay32IBM019.dll_rop.txt 
+0x1001d0f0 # add eax, ecx ; ret - libeay32IBM019.dll_rop.txt 
+[time] total: 411 ms
+
+```
+
+### Find gadgets that add dl to memory location pointed to by eax 
+
+```
+└─# python3 -m ropfilter --safe-enable --addr-no-bytes 0x00 -f libeay32IBM019.dll_rop.txt  --avoid-clobber esp --best-last --arith 'dst_base=eax,src=dl,op=add'
+0x100421cf # add byte [eax+0x56], dl ; call dword [esp+0x54] - libeay32IBM019.dll_rop.txt 
+0x10042193 # add byte [eax+0x56], dl ; call dword [esp+0x50] - libeay32IBM019.dll_rop.txt 
+0x1003a364 # add byte [eax+0x52], dl ; call dword [0x100d5054] - libeay32IBM019.dll_rop.txt 
+0x1002f6fe # add byte [eax+0x57], dl ; call edx - libeay32IBM019.dll_rop.txt 
+0x10079d87 # add byte [eax-0x18], dl ; xor ah, byte [ebx-0x04] ; inc dword [ebx+0x5e5f08c4] ; pop ebp ; ret - libeay32IBM019.dll_rop.txt 
+[time] total: 413 ms
+
+```
+
+### Find gadgets that read memory pointed to by eax add it to to edx
+
+```
+─# python3 -m ropfilter --safe-enable --addr-no-bytes 0x00 -f libeay32IBM019.dll_rop.txt  --avoid-clobber esp --best-last --arith 'src_base=eax,dst=edx,op=add'
+0x1003fbff # adc byte [edi-0x05], ch ; add edx, dword [eax] ; xchg bl, bh ; add edx, dword [eax] ; ret - libeay32IBM019.dll_rop.txt 
+0x1003c3a2 # add edx, dword [eax] ; mov al, dl ; add edx, dword [eax] ; aaa ; ret - libeay32IBM019.dll_rop.txt 
+0x1003c3a1 # rol byte [ebx], 0x00000010 ; mov al, dl ; add edx, dword [eax] ; aaa ; ret - libeay32IBM019.dll_rop.txt 
+0x1003fc02 # add edx, dword [eax] ; xchg bl, bh ; add edx, dword [eax] ; ret - libeay32IBM019.dll_rop.txt 
+0x1003c3a4 # mov al, dl ; add edx, dword [eax] ; aaa ; ret - libeay32IBM019.dll_rop.txt 
+0x1003fc04 # xchg bl, bh ; add edx, dword [eax] ; ret - libeay32IBM019.dll_rop.txt 
+0x1003c3a6 # add edx, dword [eax] ; aaa ; ret - libeay32IBM019.dll_rop.txt 
+0x1003a246 # add edx, dword [eax] ; mov eax, 0x00000001 ; ret - libeay32IBM019.dll_rop.txt 
+0x10064fd6 # add edx, dword [eax-0x18] ; ret - libeay32IBM019.dll_rop.txt 
+0x1003fc06 # add edx, dword [eax] ; ret - libeay32IBM019.dll_rop.txt 
+```
+
+### Find gadgets that perform operation neg|xor
+
+```
+─# python3 -m ropfilter --safe-enable --addr-no-bytes 0x00 -f libeay32IBM019.dll_rop.txt  --avoid-clobber esp --best-last --arith 'op=neg|xor'
+
+0x1001d888 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
+0x1001d818 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
+0x1001d788 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
+0x1001d4b7 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
+0x1001d1f2 # xor eax, eax ; ret - libeay32IBM019.dll_rop.txt 
+0x1001b2b6 # xor byte [esi+0x5d], bl ; ret - libeay32IBM019.dll_rop.txt 
+0x1001b2b1 # xor bl, byte [esi+0x5d] ; ret - libeay32IBM019.dll_rop.txt 
+0x1001aec4 # xor byte [esi+0x5d], bl ; ret - libeay32IBM019.dll_rop.txt 
+0x10011cb6 # xor byte [esi+0x5d], bl ; ret - libeay32IBM019.dll_rop.txt 
+0x10011cb1 # xor bl, byte [esi+0x5d] ; ret - libeay32IBM019.dll_rop.txt 
+0x10011b64 # xor byte [esi+0x5d], bl ; ret - libeay32IBM019.dll_rop.txt 
+[time] total: 406 ms
+
+```
+
+
+
 -----------------------------------------------
 **Now the action starts**
 -----------------------------------------------
