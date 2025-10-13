@@ -12,7 +12,7 @@ authors = [{ name = "Mostafa Soliman" }]
 license = { text = "MIT" }        # or your license
 
 # If you truly have runtime deps, list them here. Leave empty otherwise.
-dependencies = []
+dependencies = ["pyyaml>=6"]
 
 # Creates the `ropfilter` command
 [project.scripts]
