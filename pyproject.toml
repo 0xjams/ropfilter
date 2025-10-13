@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ropfilter"
+version = "0.2.31"                # ← bump per release
+description = "ROP gadget filtering and chain solver"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Mostafa Soliman" }]
+license = { text = "MIT" }        # or your license
+
+# If you truly have runtime deps, list them here. Leave empty otherwise.
+dependencies = []
+
+# Creates the `ropfilter` command
+[project.scripts]
+ropfilter = "ropfilter.__main__:run"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ropfilter*"]
