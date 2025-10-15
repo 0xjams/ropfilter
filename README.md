@@ -124,7 +124,7 @@ ropfilter --best-last --safe-enable -f libeay32IBM019.dll_rop.txt --memread 'bas
 ### 🔹 Memory Writes (`--memwrite`)
 **Find gadgets that write `eax` into `[ebp+disp]`:**
 ```bash
-ropfilter --best-last --safe-enable -f libeay32IBM019.dll_rop.txt --memwrite 'base=ebp,src=eax'
+ropfilter --best-last --safe-enable -f libeay32IBM019.dll_rop.txt --memwrite 'base=ebp,src=eax,disp=0x04'
 ```
 
 ---
